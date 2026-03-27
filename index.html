@@ -884,7 +884,7 @@ async function uploadFile(file,folderId,onProg){
         const meta=JSON.stringify({name:file.name,parents:[folderId]});
         const body=['--'+bnd,'Content-Type: application/json; charset=UTF-8','',meta,'--'+bnd,`Content-Type: ${file.type||'application/octet-stream'}`,'Content-Transfer-Encoding: base64','',b64,'--'+bnd+'--'].join('\r\n');
         onProg(60);
-        const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{method:'POST',headers:{Authorization:'Bearer '+S.accessToken,`Content-Type`:`multipart/related; boundary=${bnd}`},body});
+        const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{method:'POST',headers:{Authorization:'Bearer '+S.accessToken,'Content-Type':`multipart/related; boundary=${bnd}`},body});
         if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(err.error?.message||r.statusText);}
         onProg(100);res(await r.json());
       }catch(err){rej(err);}
