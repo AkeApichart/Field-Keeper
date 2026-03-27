@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="Field Keeper">
 <meta name="theme-color" content="#1a1a18">
 <title>Field Keeper</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -349,9 +351,15 @@
     </div>
   </div>
   <div id="header-user" class="hidden">
-    <div class="user-pill" onclick="confirmSignOut()">
-      <div class="user-avatar" id="avatar-initials">--</div>
-      <span class="user-name" id="user-display-name">ผู้ใช้</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button id="install-header-btn" onclick="promptInstall()" title="เพิ่มลงหน้าจอหลัก"
+        style="display:none;background:rgba(255,255,255,0.12);border:0.5px solid rgba(255,255,255,0.2);
+        border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:18px;
+        align-items:center;justify-content:center;">📲</button>
+      <div class="user-pill" onclick="confirmSignOut()">
+        <div class="user-avatar" id="avatar-initials">--</div>
+        <span class="user-name" id="user-display-name">ผู้ใช้</span>
+      </div>
     </div>
   </div>
 </header>
@@ -592,6 +600,42 @@
   </div>
 </div>
 
+<!-- INSTALL BANNER (Android) -->
+<div id="install-banner" style="display:none;position:fixed;bottom:calc(1rem + var(--safe-bottom));left:1rem;right:1rem;z-index:300;">
+  <div style="background:var(--text);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 24px rgba(0,0,0,0.25);">
+    <div style="width:40px;height:40px;background:var(--amber);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;color:var(--amber-dark);flex-shrink:0;">FK</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:600;color:#fff;">เพิ่ม Field Keeper</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:1px;">ลงหน้าจอหลักเพื่อเปิดได้เร็วกว่า</div>
+    </div>
+    <button onclick="doInstall()" style="background:var(--amber);color:var(--amber-dark);border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'IBM Plex Sans Thai',sans-serif;flex-shrink:0;">ติดตั้ง</button>
+    <button onclick="dismissInstall()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:20px;cursor:pointer;padding:4px;line-height:1;flex-shrink:0;">×</button>
+  </div>
+</div>
+
+<!-- iOS INSTALL SHEET -->
+<div class="sheet-overlay" id="ios-install-overlay" onclick="closeIOSSheet()"></div>
+<div class="sheet" id="ios-install-sheet">
+  <div class="sheet-handle"></div>
+  <div style="font-size:16px;font-weight:600;margin-bottom:6px;">เพิ่มลงหน้าจอหลัก</div>
+  <div style="font-size:13px;color:var(--text-2);margin-bottom:1.25rem;line-height:1.7;">เปิด Field Keeper ได้เหมือนแอปทั่วไป ไม่ต้องผ่าน browser</div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:12px;padding:12px 14px;">
+      <div style="font-size:24px;flex-shrink:0;">1️⃣</div>
+      <div style="font-size:13px;line-height:1.6;">กดปุ่ม <strong>Share</strong> <span style="font-size:16px;">⬆</span> ที่แถบด้านล่างของ Safari</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:12px;padding:12px 14px;">
+      <div style="font-size:24px;flex-shrink:0;">2️⃣</div>
+      <div style="font-size:13px;line-height:1.6;">เลื่อนลงหา <strong>Add to Home Screen</strong> แล้วกด</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:12px;padding:12px 14px;">
+      <div style="font-size:24px;flex-shrink:0;">3️⃣</div>
+      <div style="font-size:13px;line-height:1.6;">กด <strong>Add</strong> มุมขวาบน — จะมี icon Field Keeper ปรากฏบน Home Screen</div>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-full" onclick="closeIOSSheet()">เข้าใจแล้ว</button>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -667,6 +711,7 @@ async function onToken(r){
     document.getElementById('header-user').classList.remove('hidden');
   }catch(e){}
   showSection('project');updateStep(3);loadProjects();
+  checkIOSInstall();
 }
 
 function showSigninErr(m){
@@ -935,6 +980,76 @@ function fmtSize(b){
 }
 
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ==================== PWA INSTALL ====================
+let _deferredPrompt = null;
+const _isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const _isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+const _installDismissed = localStorage.getItem('fk_install_dismissed');
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// Android: catch install prompt
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredPrompt = e;
+  if (!_isStandalone && !_installDismissed) showInstallBanner();
+});
+
+window.addEventListener('appinstalled', () => {
+  hideInstallBanner();
+  toast('ติดตั้ง Field Keeper สำเร็จแล้ว! 🎉', 'success');
+});
+
+function showInstallBanner() {
+  document.getElementById('install-banner').style.display = 'block';
+  const hBtn = document.getElementById('install-header-btn');
+  if (hBtn) hBtn.style.display = 'flex';
+}
+function hideInstallBanner() {
+  document.getElementById('install-banner').style.display = 'none';
+}
+function dismissInstall() {
+  hideInstallBanner();
+  localStorage.setItem('fk_install_dismissed', '1');
+}
+
+async function doInstall() {
+  if (!_deferredPrompt) return;
+  _deferredPrompt.prompt();
+  const { outcome } = await _deferredPrompt.userChoice;
+  _deferredPrompt = null;
+  hideInstallBanner();
+  if (outcome === 'dismissed') localStorage.setItem('fk_install_dismissed', '1');
+}
+
+function promptInstall() {
+  if (_isIOS) {
+    // iOS: show manual instructions
+    document.getElementById('ios-install-overlay').classList.add('open');
+    document.getElementById('ios-install-sheet').classList.add('open');
+  } else if (_deferredPrompt) {
+    doInstall();
+  } else {
+    showInstallBanner();
+  }
+}
+
+function closeIOSSheet() {
+  document.getElementById('ios-install-overlay').classList.remove('open');
+  document.getElementById('ios-install-sheet').classList.remove('open');
+}
+
+// iOS: show install hint after login (not in standalone mode)
+function checkIOSInstall() {
+  if (_isIOS && !_isStandalone && !_installDismissed) {
+    const hBtn = document.getElementById('install-header-btn');
+    if (hBtn) hBtn.style.display = 'flex';
+  }
+}
 </script>
 </body>
 </html>
