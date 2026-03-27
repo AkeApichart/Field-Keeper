@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Field Keeper">
+<meta name="theme-color" content="#1a1a18">
+<title>Field Keeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --amber:#EF9F27; --amber-light:#FAEEDA; --amber-dark:#854F0B;
+    --bg:#f8f6f1; --surface:#ffffff; --surface2:#f0ede4;
+    --border:rgba(0,0,0,0.10); --border-strong:rgba(0,0,0,0.20);
+    --text:#1a1a18; --text-2:#5a5a54; --text-3:#9a9a92;
+    --green:#3B6D11; --green-bg:#EAF3DE;
+    --red:#A32D2D; --red-bg:#FCEBEB;
+    --blue:#185FA5; --blue-bg:#E6F1FB;
+    --radius:12px; --radius-lg:18px;
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+    --safe-left:env(safe-area-inset-left,0px);
+    --safe-right:env(safe-area-inset-right,0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{height:100%;}
+  body{
+    font-family:'IBM Plex Sans Thai',sans-serif;
+    background:var(--bg);color:var(--text);
+    min-height:100%;min-height:-webkit-fill-available;
+    display:flex;flex-direction:column;align-items:center;
+    -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
+  }
+
+  /* HEADER */
+  .header{
+    width:100%;background:var(--text);
+    padding:0 max(1.25rem,var(--safe-right)) 10px max(1.25rem,var(--safe-left));
+    padding-top:var(--safe-top);
+    height:calc(56px + var(--safe-top));
+    display:flex;align-items:flex-end;justify-content:space-between;
+    position:sticky;top:0;z-index:100;flex-shrink:0;
+  }
+  .logo-mark{
+    width:32px;height:32px;background:var(--amber);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;
+    color:var(--amber-dark);flex-shrink:0;
+  }
+  .header-title{font-size:15px;font-weight:600;color:#fff;}
+  .header-sub{font-size:10px;color:rgba(255,255,255,0.4);font-family:'IBM Plex Mono',monospace;letter-spacing:.05em;margin-top:1px;}
+  .user-pill{
+    display:flex;align-items:center;gap:7px;
+    background:rgba(255,255,255,0.1);border:0.5px solid rgba(255,255,255,0.18);
+    border-radius:20px;padding:6px 12px 6px 6px;cursor:pointer;min-height:44px;
+  }
+  .user-avatar{
+    width:28px;height:28px;border-radius:50%;background:var(--amber);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:500;color:var(--amber-dark);flex-shrink:0;
+  }
+  .user-name{font-size:13px;color:rgba(255,255,255,0.85);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* MAIN */
+  .main{
+    width:100%;max-width:640px;
+    padding:1.25rem max(1rem,var(--safe-left)) calc(2rem + var(--safe-bottom));
+    flex:1;
+  }
+
+  /* STEP BAR */
+  .steps{
+    display:flex;align-items:center;
+    margin-bottom:1.5rem;background:var(--surface);
+    border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;
+  }
+  .step-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;padding:10px 4px;
+    font-size:10px;color:var(--text-3);
+    font-family:'IBM Plex Mono',monospace;gap:3px;
+    border-right:0.5px solid var(--border);transition:background .2s;
+  }
+  .step-item:last-child{border-right:none;}
+  .step-item.active{background:var(--amber-light);color:var(--amber-dark);}
+  .step-item.done{background:var(--green-bg);color:var(--green);}
+  .step-num{
+    width:22px;height:22px;border-radius:50%;
+    border:1.5px solid currentColor;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:500;
+  }
+  .step-item.done .step-num{background:var(--green);border-color:var(--green);color:#fff;font-size:12px;}
+  .step-label{font-size:9px;}
+
+  /* CARD */
+  .card{
+    background:var(--surface);border:0.5px solid var(--border);
+    border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;
+  }
+  .card-title{font-size:16px;font-weight:600;margin-bottom:4px;}
+  .card-sub{font-size:13px;color:var(--text-2);line-height:1.5;}
+  .card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.1rem;gap:8px;}
+  .step-badge{
+    font-size:9px;font-family:'IBM Plex Mono',monospace;
+    background:var(--amber-light);color:var(--amber-dark);
+    border:0.5px solid rgba(239,159,39,0.3);
+    border-radius:5px;padding:3px 8px;letter-spacing:.05em;font-weight:500;
+    white-space:nowrap;flex-shrink:0;margin-top:2px;
+  }
+
+  /* FORM */
+  label.field-label{
+    display:block;font-size:11px;font-weight:500;color:var(--text-2);
+    margin-bottom:7px;letter-spacing:.04em;text-transform:uppercase;
+  }
+  input[type="text"],select{
+    width:100%;height:48px;padding:0 14px;
+    border:1.5px solid var(--border-strong);border-radius:var(--radius);
+    background:var(--bg);color:var(--text);
+    font-family:'IBM Plex Mono',monospace;font-size:14px;
+    transition:border-color .15s;outline:none;-webkit-appearance:none;
+    -webkit-text-size-adjust:100%;
+  }
+  input:focus,select:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(239,159,39,0.15);}
+  input::placeholder{color:var(--text-3);font-size:12px;}
+  .field-hint{font-size:11px;color:var(--text-3);margin-top:6px;line-height:1.5;}
+  .field-hint a{color:var(--blue);}
+  .field-row{margin-bottom:1.1rem;}
+  .field-row:last-child{margin-bottom:0;}
+  .inline-row{display:flex;gap:8px;}
+  .inline-row input{flex:1;}
+
+  /* BUTTONS */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    height:48px;padding:0 20px;border-radius:var(--radius);
+    font-family:'IBM Plex Sans Thai',sans-serif;
+    font-size:15px;font-weight:500;cursor:pointer;border:none;
+    transition:all .15s;outline:none;white-space:nowrap;
+    -webkit-appearance:none;touch-action:manipulation;
+    user-select:none;-webkit-user-select:none;
+  }
+  .btn:active{transform:scale(0.96);opacity:0.9;}
+  .btn-primary{background:var(--text);color:#fff;}
+  .btn-primary:disabled{background:var(--text-3);cursor:not-allowed;transform:none;opacity:1;}
+  .btn-amber{background:var(--amber);color:var(--amber-dark);font-weight:600;}
+  .btn-amber:disabled{background:#fac775;color:#c49060;cursor:not-allowed;transform:none;opacity:1;}
+  .btn-outline{background:transparent;border:1.5px solid var(--border-strong);color:var(--text-2);font-size:14px;height:44px;}
+  .btn-outline:active{background:var(--surface2);}
+  .btn-sm{height:42px;padding:0 16px;font-size:14px;}
+  .btn-full{width:100%;}
+
+  /* GOOGLE BTN */
+  .google-btn{
+    display:flex;align-items:center;gap:12px;height:52px;padding:0 20px;
+    border-radius:var(--radius);border:1.5px solid var(--border-strong);
+    background:var(--surface);cursor:pointer;
+    font-family:'IBM Plex Sans Thai',sans-serif;font-size:16px;font-weight:500;color:var(--text);
+    transition:all .15s;width:100%;justify-content:center;touch-action:manipulation;
+  }
+  .google-btn:active{transform:scale(0.97);background:var(--surface2);}
+  .google-icon{width:20px;height:20px;flex-shrink:0;}
+
+  /* ALERT */
+  .alert{
+    border-radius:var(--radius);padding:12px 14px;font-size:13px;
+    margin-bottom:1rem;line-height:1.6;
+    display:flex;align-items:flex-start;gap:8px;
+  }
+  .alert-info{background:var(--blue-bg);color:var(--blue);border-left:3px solid var(--blue);}
+  .alert-success{background:var(--green-bg);color:var(--green);border-left:3px solid var(--green);}
+  .alert-error{background:var(--red-bg);color:var(--red);border-left:3px solid var(--red);}
+  .alert-warn{background:var(--amber-light);color:var(--amber-dark);border-left:3px solid var(--amber);}
+  .alert-icon{font-size:14px;flex-shrink:0;margin-top:2px;}
+
+  /* PROJECT GRID */
+  .project-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);
+    gap:10px;margin-bottom:1rem;
+  }
+  @media(min-width:480px){.project-grid{grid-template-columns:repeat(3,1fr);}}
+  .project-card{
+    border:1.5px solid var(--border);border-radius:var(--radius);
+    padding:14px 12px;cursor:pointer;transition:all .15s;
+    background:var(--bg);display:flex;flex-direction:column;gap:5px;
+    min-height:80px;touch-action:manipulation;
+    user-select:none;-webkit-user-select:none;
+  }
+  .project-card:active{transform:scale(0.96);}
+  .project-card.selected{border:2px solid var(--amber);background:var(--amber-light);}
+  .project-card-icon{font-size:22px;}
+  .project-card-name{font-size:13px;font-weight:500;color:var(--text);word-break:break-word;line-height:1.4;}
+  .project-card-new{border-style:dashed;align-items:center;justify-content:center;text-align:center;border-color:var(--border-strong);}
+  .project-card-new .project-card-name{color:var(--text-3);font-size:12px;}
+
+  /* DROPZONE */
+  .dropzone{
+    border:2px dashed var(--border-strong);border-radius:var(--radius-lg);
+    padding:2rem 1.25rem;text-align:center;cursor:pointer;
+    transition:all .2s;background:var(--bg);touch-action:manipulation;
+  }
+  .dropzone:active,.dropzone.dragover{border-color:var(--amber);background:var(--amber-light);}
+  .dropzone-icon{font-size:3rem;margin-bottom:.75rem;display:block;}
+  .dropzone-text{font-size:15px;color:var(--text-2);margin-bottom:4px;font-weight:500;}
+  .dropzone-sub{font-size:12px;color:var(--text-3);}
+  .dropzone-types{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;flex-wrap:wrap;}
+  .type-badge{
+    font-size:10px;font-family:'IBM Plex Mono',monospace;
+    background:var(--surface2);border:0.5px solid var(--border);
+    border-radius:4px;padding:3px 8px;color:var(--text-2);
+  }
+
+  /* FILE LIST */
+  .file-list{display:flex;flex-direction:column;gap:8px;margin-top:1rem;}
+  .file-item{
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg);border:0.5px solid var(--border);
+    border-radius:var(--radius);padding:10px 12px;
+  }
+  .file-icon{
+    width:40px;height:40px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;flex-shrink:0;
+  }
+  .fi-pdf{background:#FCEBEB;} .fi-img{background:#EAF3DE;}
+  .fi-doc{background:var(--blue-bg);} .fi-json{background:var(--amber-light);}
+  .fi-other{background:var(--surface2);}
+  .file-info{flex:1;min-width:0;}
+  .file-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .file-meta{font-size:11px;color:var(--text-3);margin-top:2px;}
+  .file-remove{
+    background:none;border:none;cursor:pointer;color:var(--text-3);
+    font-size:18px;padding:8px;border-radius:8px;flex-shrink:0;
+    min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;
+  }
+  .file-remove:active{background:var(--red-bg);color:var(--red);}
+
+  /* PROGRESS */
+  .progress-wrap{width:100%;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:6px;}
+  .progress-bar{height:100%;background:var(--amber);border-radius:3px;transition:width .4s ease;}
+  .progress-bar.done{background:var(--green);}
+  .progress-bar.error{background:var(--red);}
+  .upload-status{font-size:11px;font-family:'IBM Plex Mono',monospace;margin-top:4px;}
+  .upload-status.uploading{color:var(--amber-dark);}
+  .upload-status.done{color:var(--green);}
+  .upload-status.error{color:var(--red);}
+
+  /* SUMMARY */
+  .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1rem;}
+  .summary-item{background:var(--surface2);border-radius:var(--radius);padding:14px 10px;text-align:center;}
+  .summary-num{font-size:28px;font-weight:600;}
+  .summary-label{font-size:11px;color:var(--text-3);margin-top:3px;}
+
+  /* MISC */
+  .divider{border:none;border-top:0.5px solid var(--border);margin:1.25rem 0;}
+  .new-project-form{display:none;margin-top:.75rem;border-top:0.5px solid var(--border);padding-top:1rem;}
+  .new-project-form.visible{display:block;}
+  .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+  .spinner-amber{border-color:rgba(239,159,39,0.2);border-top-color:var(--amber);}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .hidden{display:none!important;}
+  .section{display:none;}
+  .section.active{display:block;}
+
+  /* SETUP */
+  .setup-center{max-width:480px;margin:0 auto;}
+  .setup-hero{text-align:center;padding:1.5rem 0 .75rem;}
+  .setup-hero .big-icon{font-size:4rem;display:block;margin-bottom:.75rem;}
+  .setup-hero h1{font-size:22px;font-weight:600;margin-bottom:6px;}
+  .setup-hero p{font-size:14px;color:var(--text-2);line-height:1.6;}
+
+  /* SELECTED BAR */
+  .selected-bar{
+    background:var(--amber-light);border:1.5px solid rgba(239,159,39,0.35);
+    border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .selected-bar-info{display:flex;align-items:center;gap:10px;}
+  .selected-bar-name{font-size:17px;font-weight:600;}
+  .selected-bar-label{font-size:11px;color:var(--text-3);margin-bottom:2px;}
+
+  /* UPLOAD TOP */
+  .upload-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;gap:10px;}
+  .proj-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-family:'IBM Plex Mono',monospace;}
+  .proj-name{font-size:20px;font-weight:600;margin-top:2px;}
+  .drive-link{
+    display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--blue);
+    text-decoration:none;font-family:'IBM Plex Mono',monospace;padding:6px 10px;
+    border-radius:8px;border:0.5px solid var(--blue-bg);background:var(--blue-bg);
+    white-space:nowrap;flex-shrink:0;min-height:36px;
+  }
+  .upload-actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem;}
+  .upload-actions-row .btn{flex:1;min-width:120px;}
+
+  /* MOBILE PICK BUTTONS */
+  .pick-btns{display:flex;gap:10px;margin-bottom:1rem;}
+  .pick-btn{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:8px;padding:16px 8px;min-height:90px;
+    background:var(--bg);border:1.5px dashed var(--border-strong);
+    border-radius:var(--radius);cursor:pointer;
+    font-family:'IBM Plex Sans Thai',sans-serif;font-size:13px;color:var(--text-2);
+    touch-action:manipulation;transition:all .15s;user-select:none;
+  }
+  .pick-btn:active{border-color:var(--amber);background:var(--amber-light);color:var(--amber-dark);transform:scale(0.97);}
+  .pick-btn-icon{font-size:1.75rem;}
+
+  /* TOAST */
+  .toast{
+    position:fixed;bottom:calc(1.5rem + var(--safe-bottom));left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--text);color:#fff;
+    padding:12px 20px;border-radius:12px;font-size:14px;font-weight:500;
+    z-index:999;opacity:0;transition:all .3s ease;
+    white-space:nowrap;max-width:90vw;pointer-events:none;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.success{background:var(--green);}
+  .toast.error{background:var(--red);}
+
+  /* SIGN OUT SHEET */
+  .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;}
+  .sheet-overlay.open{display:block;}
+  .sheet{
+    position:fixed;bottom:0;left:0;right:0;background:var(--surface);
+    border-radius:20px 20px 0 0;
+    padding:0 1.25rem calc(1.25rem + var(--safe-bottom));
+    z-index:201;transform:translateY(100%);transition:transform .3s ease;
+  }
+  .sheet.open{transform:translateY(0);}
+  .sheet-handle{width:40px;height:4px;background:var(--border-strong);border-radius:2px;margin:12px auto 20px;}
+  .sheet-title{font-size:16px;font-weight:600;margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="logo-mark">FK</div>
+    <div>
+      <div class="header-title">Field Keeper</div>
+      <div class="header-sub">Drive Uploader</div>
+    </div>
+  </div>
+  <div id="header-user" class="hidden">
+    <div class="user-pill" onclick="confirmSignOut()">
+      <div class="user-avatar" id="avatar-initials">--</div>
+      <span class="user-name" id="user-display-name">ผู้ใช้</span>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step-item" id="si1"><div class="step-num">1</div><div class="step-label">ตั้งค่า</div></div>
+    <div class="step-item" id="si2"><div class="step-num">2</div><div class="step-label">Login</div></div>
+    <div class="step-item" id="si3"><div class="step-num">3</div><div class="step-label">โครงการ</div></div>
+    <div class="step-item" id="si4"><div class="step-num">4</div><div class="step-label">อัพโหลด</div></div>
+  </div>
+
+  <!-- SECTION 1: SETUP -->
+  <div class="section active" id="section-setup">
+    <div class="setup-center">
+      <div class="setup-hero">
+        <span class="big-icon">☁️</span>
+        <h1>ตั้งค่าการเชื่อมต่อ</h1>
+        <p>Field Keeper ช่วยอัพโหลดไฟล์ที่ export จาก Field Collector<br>ขึ้น Google Drive แยกตามโครงการโดยอัตโนมัติ</p>
+      </div>
+      <div class="card" style="margin-top:1.25rem;">
+        <div class="card-header">
+          <div><div class="card-title">เชื่อมต่อ Google Drive</div><div class="card-sub">ตั้งค่าครั้งเดียว จำค่าไว้ในเครื่องอัตโนมัติ</div></div>
+          <span class="step-badge">STEP 01</span>
+        </div>
+        <div class="alert alert-info">
+          <span class="alert-icon">ℹ</span>
+          <div>
+            ขั้นตอน:<br>
+            <ol style="margin-top:8px;padding-left:16px;line-height:2.4;">
+              <li>ไปที่ <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener"><strong>Google Cloud Console</strong></a></li>
+              <li>สร้าง OAuth 2.0 Client ID → ประเภท <strong>Web application</strong></li>
+              <li>เพิ่ม Authorized origins:<br><code style="font-size:10px;background:rgba(0,0,0,0.08);padding:2px 6px;border-radius:4px;word-break:break-all;" id="current-origin"></code></li>
+              <li>เปิดใช้ <strong>Google Drive API</strong></li>
+            </ol>
+          </div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">Client ID</label>
+          <input type="text" id="client-id-input" placeholder="xxxx.apps.googleusercontent.com"
+            inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false" />
+          <div class="field-hint">บันทึกเฉพาะใน browser ของเครื่องนี้</div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">ชื่อโฟลเดอร์หลักบน Drive</label>
+          <input type="text" id="root-folder-input" value="Field Collector"
+            inputmode="text" autocomplete="off" />
+          <div class="field-hint">โฟลเดอร์นี้จะสร้างใน My Drive และแยกโฟลเดอร์ย่อยตามโครงการ</div>
+        </div>
+        <button class="btn btn-amber btn-full" onclick="saveSetup()">บันทึกและดำเนินการต่อ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: SIGN IN -->
+  <div class="section" id="section-signin">
+    <div class="setup-center">
+      <div class="setup-hero">
+        <span class="big-icon">🔑</span>
+        <h1>เข้าสู่ระบบ Google</h1>
+        <p>อนุญาตให้ Field Keeper อัพโหลดไฟล์จาก Field Collector<br>ขึ้น Google Drive ของคุณ</p>
+      </div>
+      <div class="card" style="margin-top:1.25rem;">
+        <div id="signin-error" class="alert alert-error hidden">
+          <span class="alert-icon">✕</span><span id="signin-error-msg"></span>
+        </div>
+        <button class="google-btn" id="google-signin-btn" onclick="startSignIn()">
+          <svg class="google-icon" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          ลงชื่อเข้าใช้ด้วย Google
+        </button>
+        <div style="margin-top:10px;text-align:center;font-size:11px;color:var(--text-3);">สิทธิ์: สร้าง/อัพโหลดไฟล์เท่านั้น (drive.file scope)</div>
+        <hr class="divider">
+        <button class="btn btn-outline btn-sm btn-full" onclick="goToSetup()">← แก้ไข Client ID</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: PROJECT -->
+  <div class="section" id="section-project">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">เลือกโครงการปลายทาง</div>
+          <div class="card-sub" id="root-folder-label">My Drive › Field Collector</div>
+        </div>
+        <span class="step-badge">STEP 03</span>
+      </div>
+      <div id="project-loading" class="alert alert-info">
+        <div class="spinner spinner-amber"></div>
+        <span>กำลังโหลดโฟลเดอร์...</span>
+      </div>
+      <div id="project-error" class="alert alert-error hidden">
+        <span class="alert-icon">✕</span>
+        <span id="project-error-msg"></span>
+        <button class="btn btn-sm btn-outline" onclick="loadProjects()" style="margin-left:auto;flex-shrink:0;height:36px;font-size:12px;padding:0 12px;">ลองใหม่</button>
+      </div>
+      <div id="project-grid" class="project-grid hidden"></div>
+      <div id="new-project-toggle" class="hidden" style="margin-top:.5rem;">
+        <button class="btn btn-outline btn-sm btn-full" onclick="toggleNewProject()">+ สร้างโครงการใหม่</button>
+      </div>
+      <div class="new-project-form" id="new-project-form">
+        <label class="field-label">ชื่อโครงการใหม่</label>
+        <div class="inline-row">
+          <input type="text" id="new-project-name" placeholder="เช่น Project-Q1-2568"
+            inputmode="text" autocomplete="off" />
+          <button class="btn btn-primary btn-sm" id="create-project-btn" onclick="createNewProject()" style="flex-shrink:0;">สร้าง</button>
+        </div>
+        <div style="margin-top:8px;">
+          <button class="btn btn-outline btn-sm" onclick="toggleNewProject()">ยกเลิก</button>
+        </div>
+      </div>
+    </div>
+    <div id="project-selected-bar" class="selected-bar hidden">
+      <div class="selected-bar-info">
+        <span style="font-size:24px;">📁</span>
+        <div>
+          <div class="selected-bar-label">โครงการที่เลือก</div>
+          <div class="selected-bar-name" id="selected-project-name">—</div>
+        </div>
+      </div>
+      <button class="btn btn-amber btn-sm" onclick="goToUpload()">ต่อไป →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 4: UPLOAD -->
+  <div class="section" id="section-upload">
+    <div class="upload-top">
+      <div>
+        <div class="proj-label">โครงการ</div>
+        <div class="proj-name" id="upload-project-name">—</div>
+      </div>
+      <a id="drive-folder-link" href="#" target="_blank" rel="noopener" class="drive-link hidden">📂 Drive</a>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">อัพโหลดไฟล์จาก Field Collector</div>
+          <div class="card-sub">เลือกไฟล์ Word (.docx) ที่ export ออกจากแอป Field Collector</div>
+        </div>
+        <span class="step-badge">STEP 04</span>
+      </div>
+
+      <!-- Mobile pick buttons -->
+      <div class="pick-btns">
+        <div class="pick-btn" onclick="document.getElementById('file-input').click()">
+          <span class="pick-btn-icon">📄</span>
+          <span>เลือกไฟล์ Word</span>
+        </div>
+        <div class="pick-btn" onclick="document.getElementById('file-input-any').click()">
+          <span class="pick-btn-icon">📂</span>
+          <span>ไฟล์อื่นๆ</span>
+        </div>
+      </div>
+
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+        <span class="dropzone-icon">📤</span>
+        <div class="dropzone-text">แตะหรือลากไฟล์มาวางที่นี่</div>
+        <div class="dropzone-sub">ไฟล์ที่ export จาก Field Collector</div>
+        <div class="dropzone-types">
+          <span class="type-badge" style="background:var(--blue-bg);color:var(--blue);border-color:rgba(24,95,165,0.2);">DOCX</span>
+          <span class="type-badge" style="background:var(--blue-bg);color:var(--blue);border-color:rgba(24,95,165,0.2);">DOC</span>
+          <span class="type-badge">PDF</span>
+          <span class="type-badge">JPG/PNG</span>
+          <span class="type-badge">JSON</span>
+        </div>
+      </div>
+
+      <input type="file" id="file-input" multiple style="display:none"
+        accept=".doc,.docx,.pdf,.jpg,.jpeg,.png,.json,.txt,.csv,.xls,.xlsx"
+        onchange="handleFileSelect(this.files)" />
+      <input type="file" id="file-input-any" multiple style="display:none"
+        accept="*/*"
+        onchange="handleFileSelect(this.files)" />
+      <!-- Keep cam input for compatibility -->
+      <input type="file" id="file-input-cam" multiple style="display:none"
+        accept="image/*" capture="environment"
+        onchange="handleFileSelect(this.files)" />
+
+      <div id="file-list" class="file-list hidden"></div>
+      <div id="upload-actions" class="upload-actions-row hidden">
+        <button class="btn btn-amber" id="upload-btn" onclick="startUpload()">⬆ อัพโหลด</button>
+        <button class="btn btn-outline" onclick="clearFiles()" style="flex:0;padding:0 16px;">ล้าง</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:.75rem;">
+      <button class="btn btn-outline btn-sm btn-full" onclick="goToProject()">← เปลี่ยนโครงการ</button>
+    </div>
+
+    <div id="upload-progress-card" class="card hidden">
+      <div class="card-title" style="margin-bottom:1rem;">สถานะการอัพโหลด</div>
+      <div id="upload-progress-list"></div>
+      <div id="upload-summary" class="hidden">
+        <hr class="divider">
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="summary-num" id="sum-total">0</div>
+            <div class="summary-label">ทั้งหมด</div>
+          </div>
+          <div class="summary-item" style="background:var(--green-bg);">
+            <div class="summary-num" style="color:var(--green);" id="sum-done">0</div>
+            <div class="summary-label" style="color:var(--green);">สำเร็จ</div>
+          </div>
+          <div class="summary-item" style="background:var(--red-bg);">
+            <div class="summary-num" style="color:var(--red);" id="sum-error">0</div>
+            <div class="summary-label" style="color:var(--red);">ล้มเหลว</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">
+          <button class="btn btn-amber" style="flex:1;" onclick="resetUpload()">+ อัพโหลดเพิ่ม</button>
+          <button class="btn btn-outline" style="flex:1;" onclick="goToProject()">เปลี่ยนโครงการ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- SIGN OUT SHEET -->
+<div class="sheet-overlay" id="signout-overlay" onclick="closeSignOutSheet()"></div>
+<div class="sheet" id="signout-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">ออกจากระบบ Google?</div>
+  <p style="font-size:14px;color:var(--text-2);margin-bottom:1.25rem;line-height:1.6;">
+    ต้องเข้าสู่ระบบใหม่ครั้งถัดไปที่ใช้งาน Field Keeper
+  </p>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-primary btn-full" onclick="handleSignOut()">ออกจากระบบ</button>
+    <button class="btn btn-outline btn-full" onclick="closeSignOutSheet()">ยกเลิก</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const S={
+  clientId:'',rootFolderName:'Field Collector',
+  accessToken:null,userInfo:null,
+  rootFolderId:null,projects:[],
+  selectedProject:null,pendingFiles:[],
+  tokenClient:null,
+};
+
+document.getElementById('current-origin').textContent=window.location.origin;
+
+// Load saved config
+try{
+  const c=JSON.parse(localStorage.getItem('fk_cfg')||'{}');
+  if(c.clientId){
+    S.clientId=c.clientId;
+    S.rootFolderName=c.rootFolderName||'Field Collector';
+    document.getElementById('client-id-input').value=S.clientId;
+    document.getElementById('root-folder-input').value=S.rootFolderName;
+    showSection('signin');updateStep(2);initTok();
+  }else updateStep(1);
+}catch(e){updateStep(1);}
+
+// Drag/drop
+const dz=document.getElementById('dropzone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');handleFiles(e.dataTransfer.files);});
+
+// SETUP
+function saveSetup(){
+  const cid=document.getElementById('client-id-input').value.trim();
+  const root=document.getElementById('root-folder-input').value.trim()||'Field Collector';
+  if(!cid){toast('กรุณากรอก Client ID','error');return;}
+  S.clientId=cid;S.rootFolderName=root;
+  localStorage.setItem('fk_cfg',JSON.stringify({clientId:cid,rootFolderName:root}));
+  initTok();showSection('signin');updateStep(2);
+}
+function goToSetup(){showSection('setup');updateStep(1);}
+
+// AUTH
+function initTok(){
+  if(!S.clientId)return;
+  try{
+    S.tokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:S.clientId,
+      scope:'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile',
+      callback:onToken,
+    });
+  }catch(e){console.error(e);}
+}
+
+function startSignIn(){
+  const btn=document.getElementById('google-signin-btn');
+  btn.innerHTML='<div class="spinner"></div> กำลังเข้าสู่ระบบ...';
+  btn.disabled=true;
+  try{if(!S.tokenClient)initTok();S.tokenClient.requestAccessToken();}
+  catch(e){showSigninErr('เปิดหน้า Google ไม่ได้: '+e.message);resetSigninBtn();btn.disabled=false;}
+}
+
+async function onToken(r){
+  if(r.error){showSigninErr('ยกเลิก: '+r.error);resetSigninBtn();document.getElementById('google-signin-btn').disabled=false;return;}
+  S.accessToken=r.access_token;
+  try{
+    const u=await(await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+S.accessToken}})).json();
+    S.userInfo=u;
+    const nm=u.name||u.email||'ผู้ใช้';
+    const ini=nm.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('avatar-initials').textContent=ini;
+    document.getElementById('user-display-name').textContent=nm;
+    document.getElementById('header-user').classList.remove('hidden');
+  }catch(e){}
+  showSection('project');updateStep(3);loadProjects();
+}
+
+function showSigninErr(m){
+  document.getElementById('signin-error-msg').textContent=m;
+  document.getElementById('signin-error').classList.remove('hidden');
+}
+
+function resetSigninBtn(){
+  document.getElementById('google-signin-btn').innerHTML=`<svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>ลงชื่อเข้าใช้ด้วย Google`;
+}
+
+function confirmSignOut(){
+  document.getElementById('signout-overlay').classList.add('open');
+  document.getElementById('signout-sheet').classList.add('open');
+}
+function closeSignOutSheet(){
+  document.getElementById('signout-overlay').classList.remove('open');
+  document.getElementById('signout-sheet').classList.remove('open');
+}
+function handleSignOut(){
+  closeSignOutSheet();
+  try{if(S.accessToken)google.accounts.oauth2.revoke(S.accessToken);}catch(e){}
+  S.accessToken=null;S.userInfo=null;S.rootFolderId=null;S.projects=[];S.selectedProject=null;
+  document.getElementById('header-user').classList.add('hidden');
+  resetSigninBtn();document.getElementById('google-signin-btn').disabled=false;
+  showSection('signin');updateStep(2);toast('ออกจากระบบแล้ว');
+}
+
+// PROJECTS
+async function loadProjects(){
+  document.getElementById('project-loading').classList.remove('hidden');
+  document.getElementById('project-grid').classList.add('hidden');
+  document.getElementById('project-error').classList.add('hidden');
+  document.getElementById('project-selected-bar').classList.add('hidden');
+  document.getElementById('new-project-toggle').classList.add('hidden');
+  try{
+    S.rootFolderId=await findOrCreateFolder(S.rootFolderName,null);
+    document.getElementById('root-folder-label').textContent='My Drive › '+S.rootFolderName;
+    const res=await driveApi(`files?q=${encodeURIComponent(`'${S.rootFolderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`)}&fields=files(id,name,createdTime)&orderBy=name`);
+    S.projects=res.files||[];
+    renderGrid();
+    document.getElementById('project-loading').classList.add('hidden');
+    document.getElementById('new-project-toggle').classList.remove('hidden');
+  }catch(e){
+    document.getElementById('project-loading').classList.add('hidden');
+    document.getElementById('project-error-msg').textContent='โหลดไม่สำเร็จ: '+e.message;
+    document.getElementById('project-error').classList.remove('hidden');
+  }
+}
+
+function renderGrid(){
+  const g=document.getElementById('project-grid');
+  g.innerHTML='';
+  S.projects.forEach(p=>{
+    const c=document.createElement('div');
+    c.className='project-card'+(S.selectedProject?.id===p.id?' selected':'');
+    c.innerHTML=`<div class="project-card-icon">📁</div><div class="project-card-name">${esc(p.name)}</div>`;
+    c.onclick=()=>selectProject(p);
+    g.appendChild(c);
+  });
+  g.classList.remove('hidden');
+}
+
+function selectProject(p){
+  S.selectedProject=p;renderGrid();
+  document.getElementById('selected-project-name').textContent=p.name;
+  document.getElementById('project-selected-bar').classList.remove('hidden');
+  document.getElementById('project-selected-bar').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function toggleNewProject(){
+  const f=document.getElementById('new-project-form');
+  f.classList.toggle('visible');
+  if(f.classList.contains('visible'))setTimeout(()=>document.getElementById('new-project-name').focus(),100);
+}
+
+async function createNewProject(){
+  const nm=document.getElementById('new-project-name').value.trim();
+  if(!nm){toast('กรุณากรอกชื่อโครงการ','error');return;}
+  const btn=document.getElementById('create-project-btn');
+  btn.disabled=true;btn.textContent='...';
+  try{
+    const folder=await createFolder(nm,S.rootFolderId);
+    S.projects.push(folder);S.projects.sort((a,b)=>a.name.localeCompare(b.name));
+    document.getElementById('new-project-name').value='';
+    document.getElementById('new-project-form').classList.remove('visible');
+    renderGrid();selectProject(folder);
+    toast('สร้าง "'+nm+'" แล้ว','success');
+  }catch(e){toast('สร้างไม่สำเร็จ: '+e.message,'error');}
+  btn.disabled=false;btn.textContent='สร้าง';
+}
+
+function goToProject(){showSection('project');updateStep(3);resetUploadState();}
+
+function goToUpload(){
+  if(!S.selectedProject){toast('กรุณาเลือกโครงการก่อน','error');return;}
+  showSection('upload');updateStep(4);
+  document.getElementById('upload-project-name').textContent=S.selectedProject.name;
+  const lk=document.getElementById('drive-folder-link');
+  lk.href=`https://drive.google.com/drive/folders/${S.selectedProject.id}`;
+  lk.classList.remove('hidden');
+  resetUploadState();
+}
+
+// UPLOAD
+function handleFiles(files){
+  for(const f of files)
+    if(!S.pendingFiles.find(x=>x.name===f.name&&x.size===f.size))S.pendingFiles.push(f);
+  document.getElementById('file-input').value='';
+  document.getElementById('file-input-cam').value='';
+  renderFileList();
+}
+function handleFileSelect(files){handleFiles(files);}
+
+function renderFileList(){
+  const list=document.getElementById('file-list');
+  if(!S.pendingFiles.length){
+    list.classList.add('hidden');document.getElementById('upload-actions').classList.add('hidden');return;
+  }
+  list.classList.remove('hidden');document.getElementById('upload-actions').classList.remove('hidden');
+  list.innerHTML='';
+  S.pendingFiles.forEach((f,i)=>{
+    const{icon,cls}=fIcon(f.name);
+    const d=document.createElement('div');d.className='file-item';
+    d.innerHTML=`<div class="file-icon fi-${cls}">${icon}</div><div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-meta">${fmtSize(f.size)}</div></div><button class="file-remove" onclick="removeFile(${i})">✕</button>`;
+    list.appendChild(d);
+  });
+}
+
+function removeFile(i){S.pendingFiles.splice(i,1);renderFileList();}
+function clearFiles(){S.pendingFiles=[];renderFileList();}
+
+async function startUpload(){
+  if(!S.pendingFiles.length)return;
+  const btn=document.getElementById('upload-btn');
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> กำลังอัพโหลด...';
+  document.getElementById('upload-actions').classList.add('hidden');
+  const pc=document.getElementById('upload-progress-card');
+  pc.classList.remove('hidden');
+  const pl=document.getElementById('upload-progress-list');
+  pl.innerHTML='';
+  const files=[...S.pendingFiles];
+  files.forEach((f,i)=>{
+    const{icon,cls}=fIcon(f.name);
+    const row=document.createElement('div');
+    row.style.marginBottom='14px';
+    row.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><div class="file-icon fi-${cls}" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">${icon}</div><span style="font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.name)}</span></div><div class="progress-wrap"><div class="progress-bar" id="pb${i}" style="width:0%"></div></div><div class="upload-status uploading" id="ps${i}">รอ...</div>`;
+    pl.appendChild(row);
+  });
+  pc.scrollIntoView({behavior:'smooth',block:'start'});
+  let done=0,errors=0;
+  for(let i=0;i<files.length;i++){
+    const f=files[i];
+    const bar=document.getElementById('pb'+i);
+    const st=document.getElementById('ps'+i);
+    st.textContent='กำลังอัพโหลด...';st.className='upload-status uploading';bar.style.width='20%';
+    try{
+      await uploadFile(f,S.selectedProject.id,p=>{bar.style.width=p+'%';});
+      bar.style.width='100%';bar.classList.add('done');
+      st.textContent='✓ สำเร็จ';st.className='upload-status done';done++;
+    }catch(e){
+      bar.style.width='100%';bar.classList.add('error');
+      st.textContent='✕ '+e.message;st.className='upload-status error';errors++;
+    }
+  }
+  document.getElementById('sum-total').textContent=files.length;
+  document.getElementById('sum-done').textContent=done;
+  document.getElementById('sum-error').textContent=errors;
+  document.getElementById('upload-summary').classList.remove('hidden');
+  S.pendingFiles=[];btn.disabled=false;btn.innerHTML='⬆ อัพโหลด';
+  if(errors===0)toast('สำเร็จทั้งหมด '+done+' ไฟล์','success');
+  else toast(`สำเร็จ ${done}, ล้มเหลว ${errors}`,'');
+}
+
+function resetUpload(){S.pendingFiles=[];renderFileList();resetUploadState();}
+
+function resetUploadState(){
+  document.getElementById('upload-progress-card').classList.add('hidden');
+  document.getElementById('upload-progress-list').innerHTML='';
+  document.getElementById('upload-summary').classList.add('hidden');
+  document.getElementById('file-list').classList.add('hidden');
+  document.getElementById('upload-actions').classList.add('hidden');
+  S.pendingFiles=[];
+}
+
+// DRIVE API
+async function driveApi(path,opts={}){
+  const r=await fetch(`https://www.googleapis.com/drive/v3/${path}`,{...opts,headers:{Authorization:'Bearer '+S.accessToken,...(opts.headers||{})}});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||r.statusText);}
+  return r.json();
+}
+
+async function findOrCreateFolder(name,parentId){
+  const q=parentId
+    ?`name='${name}' and mimeType='application/vnd.google-apps.folder' and '${parentId}' in parents and trashed=false`
+    :`name='${name}' and mimeType='application/vnd.google-apps.folder' and 'root' in parents and trashed=false`;
+  const r=await driveApi(`files?q=${encodeURIComponent(q)}&fields=files(id,name)`);
+  if(r.files?.length)return r.files[0].id;
+  return(await createFolder(name,parentId)).id;
+}
+
+async function createFolder(name,parentId){
+  const m={name,mimeType:'application/vnd.google-apps.folder'};
+  if(parentId)m.parents=[parentId];
+  return driveApi('files?fields=id,name',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(m)});
+}
+
+async function uploadFile(file,folderId,onProg){
+  return new Promise((res,rej)=>{
+    const rd=new FileReader();
+    rd.onload=async e=>{
+      try{
+        const b64=e.target.result.split(',')[1];
+        const bnd='fk_'+Date.now();
+        const meta=JSON.stringify({name:file.name,parents:[folderId]});
+        const body=['--'+bnd,'Content-Type: application/json; charset=UTF-8','',meta,'--'+bnd,`Content-Type: ${file.type||'application/octet-stream'}`,'Content-Transfer-Encoding: base64','',b64,'--'+bnd+'--'].join('\r\n');
+        onProg(60);
+        const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{method:'POST',headers:{Authorization:'Bearer '+S.accessToken,`Content-Type`:`multipart/related; boundary=${bnd}`},body});
+        if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(err.error?.message||r.statusText);}
+        onProg(100);res(await r.json());
+      }catch(err){rej(err);}
+    };
+    rd.onerror=()=>rej(new Error('อ่านไฟล์ไม่สำเร็จ'));
+    rd.readAsDataURL(file);
+  });
+}
+
+// UTILS
+function showSection(n){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateStep(n){
+  [1,2,3,4].forEach(i=>{
+    const el=document.getElementById('si'+i);
+    const nm=el.querySelector('.step-num');
+    el.classList.remove('active','done');
+    if(i<n){el.classList.add('done');nm.textContent='✓';}
+    else{nm.textContent=i;if(i===n)el.classList.add('active');}
+  });
+}
+
+let _tt;
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(type?' '+type:'')+' show';
+  clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function fIcon(name){
+  const ext=name.split('.').pop().toLowerCase();
+  const m={pdf:{icon:'📄',cls:'pdf'},
+    jpg:{icon:'🖼',cls:'img'},jpeg:{icon:'🖼',cls:'img'},png:{icon:'🖼',cls:'img'},gif:{icon:'🖼',cls:'img'},webp:{icon:'🖼',cls:'img'},
+    doc:{icon:'📝',cls:'doc'},docx:{icon:'📝',cls:'doc'},
+    xls:{icon:'📊',cls:'doc'},xlsx:{icon:'📊',cls:'doc'},
+    json:{icon:'{}',cls:'json'},txt:{icon:'📃',cls:'json'},csv:{icon:'📊',cls:'json'}};
+  return m[ext]||{icon:'📎',cls:'other'};
+}
+
+function fmtSize(b){
+  if(b<1024)return b+' B';
+  if(b<1048576)return(b/1024).toFixed(1)+' KB';
+  return(b/1048576).toFixed(1)+' MB';
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+</body>
+</html>
